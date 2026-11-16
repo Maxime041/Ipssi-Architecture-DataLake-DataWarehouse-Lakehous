@@ -1,0 +1,6 @@
+# Données TPCx-BB (environ 1 Go, trop lourd pour GitHub)
+retail_project/
+*.zip
+
+# Fichiers temporaires Office
+~$*
