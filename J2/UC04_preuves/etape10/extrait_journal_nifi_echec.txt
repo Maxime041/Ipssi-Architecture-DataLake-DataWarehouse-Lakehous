@@ -1,0 +1,35 @@
+# Avertissement PutHDFS (ligne complete)
+2026-11-17 16:27:53,773 WARN [Timer-Driven Process Thread-1] o.apache.nifi.processors.hadoop.PutHDFS PutHDFS[id=e9fe7456-01a1-1000-e374-e902185e054e] penalizing StandardFlowFileRecord[uuid=535341de-7883-46f1-847a-83434265c135, offset=3386, length=3386],offset=0,name=store.dat,size=3386] and routing to failure because file with same name already exists
+
+# Bloc ecrit par LogAttribute
+2026-11-17 16:28:25,311 INFO [Timer-Driven Process Thread-2] o.a.n.processors.standard.LogAttribute LogAttribute[id=ea0026fb-01a1-1000-1055-bea7b5a789b4] logging for FlowFile StandardFlowFileRecord[uuid=535341de-7883-46f1-847a-83434265c135,claim=StandardContentClaim [resourceClaim=StandardResourceClaim[id=1794927907393-1, container=default, section=1], offset=3386, length=3386],offset=0,name=store.dat,size=3386]
+--------------------------------------------------
+FlowFile Properties
+Key: 'entryDate'
+	Value: 'Tue Nov 17 16:27:53 CET 2026'
+Key: 'lineageStartDate'
+	Value: 'Tue Nov 17 16:27:53 CET 2026'
+Key: 'fileSize'
+	Value: '3386'
+FlowFile Attribute Map Content
+Key: 'absolute.path'
+	Value: '/data/nifi/input/'
+Key: 'file.creationTime'
+	Value: '2026-11-17T16:13:58+0100'
+Key: 'file.group'
+	Value: 'maxim'
+Key: 'file.lastAccessTime'
+	Value: '2026-11-17T16:27:53+0100'
+Key: 'file.lastModifiedTime'
+	Value: '2026-11-17T16:13:58+0100'
+Key: 'file.owner'
+	Value: 'maxim'
+Key: 'file.permissions'
+	Value: 'rwxr-xr-x'
+Key: 'filename'
+	Value: 'store.dat'
+Key: 'path'
+	Value: '/'
+Key: 'uuid'
+	Value: '535341de-7883-46f1-847a-83434265c135'
+--------------------------------------------------

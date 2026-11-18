@@ -1,0 +1,29 @@
+# UC-04 Etape 12 - Flux enrichi (avant)
+# Machine : LAPTOP-5IITUUUR, utilisateur Linux : maxim
+
+==================================================================
+[01] Etat initial : HDFS raw/nifi et dossier de rejets
+Date : 2026-11-17 17:02:19
+$ hdfs dfs -ls -R /retail-lake/raw/nifi; echo; ls -la /data/nifi/error
+------------------------------------------------------------------
+-rw-r--r--   1 maxim supergroup       3386 2026-11-17 16:05 /retail-lake/raw/nifi/store.dat
+
+total 8
+drwxr-xr-x 2 maxim maxim 4096 Nov 17 15:22 .
+drwxr-xr-x 5 root  root  4096 Nov 17 15:22 ..
+(code retour : 0)
+
+==================================================================
+[02] Trois fichiers reels du kit copies dans le dossier d'entree (2 .dat attendus en HDFS, 1 .csv attendu en rejet)
+Date : 2026-11-17 17:02:21
+$ cp $KIT/data/reason/reason.dat $KIT/data/ship_mode/ship_mode.dat $KIT/data/item_marketprices/item_marketprices_audit.csv /data/nifi/input/ && ls -l /data/nifi/input && sha256sum /data/nifi/input/*
+------------------------------------------------------------------
+total 12
+-rwxr-xr-x 1 maxim maxim  273 Nov 17 17:02 item_marketprices_audit.csv
+-rwxr-xr-x 1 maxim maxim 3105 Nov 17 17:02 reason.dat
+-rwxr-xr-x 1 maxim maxim 1220 Nov 17 17:02 ship_mode.dat
+3465c2360f4b5eb6e36c7c2a54de2aef1f80a9526520e2bf08cb9f689e1dbce4  /data/nifi/input/item_marketprices_audit.csv
+d5edc45cb1e76afde3b7c0718cdd5d5d45e5f1d720fb940b36db0cd4dcf6b091  /data/nifi/input/reason.dat
+8c48d71b318dbab1c048fd2b9fd5e6a6cba087ce07940537472bb0d5d5540125  /data/nifi/input/ship_mode.dat
+(code retour : 0)
+

@@ -1,0 +1,97 @@
+# UC-04 Etape 9 - Controles apres l'execution du flux
+# Machine : LAPTOP-5IITUUUR, utilisateur Linux : maxim
+
+==================================================================
+[01] Dossier d'entree apres execution (Keep Source File = false : le fichier doit avoir ete consomme)
+Date : 2026-11-17 16:07:56
+$ ls -la /data/nifi/input; echo -n 'fichiers restants : '; find /data/nifi/input -type f | wc -l
+------------------------------------------------------------------
+total 8
+drwxr-xr-x 2 maxim maxim 4096 Nov 17 16:05 .
+drwxr-xr-x 5 root  root  4096 Nov 17 15:22 ..
+fichiers restants : 0
+(code retour : 0)
+
+==================================================================
+[02] Resultat dans HDFS : liste (commande du TP)
+Date : 2026-11-17 16:07:56
+$ hdfs dfs -ls -h /retail-lake/raw/nifi
+------------------------------------------------------------------
+Found 1 items
+-rw-r--r--   1 maxim supergroup      3.3 K 2026-11-17 16:05 /retail-lake/raw/nifi/store.dat
+(code retour : 0)
+
+==================================================================
+[03] Resultat dans HDFS : taille (commande du TP)
+Date : 2026-11-17 16:07:58
+$ hdfs dfs -du -h /retail-lake/raw/nifi
+------------------------------------------------------------------
+3.3 K  3.3 K  /retail-lake/raw/nifi/store.dat
+(code retour : 0)
+
+==================================================================
+[04] Aucun fichier temporaire laisse par l'ecriture (Write and rename)
+Date : 2026-11-17 16:08:00
+$ hdfs dfs -ls -R /retail-lake/raw/nifi | grep -c '^-' | sed 's/^/fichiers : /'; hdfs dfs -ls -R /retail-lake/raw/nifi | grep -iE 'tmp|\.part|_COPYING_' || echo 'aucun fichier temporaire'
+------------------------------------------------------------------
+fichiers : 1
+aucun fichier temporaire
+(code retour : 0)
+
+==================================================================
+[05] Integrite : contenu ecrit par NiFi contre fichier original du kit
+Date : 2026-11-17 16:08:03
+$ echo -n 'taille HDFS  : '; hdfs dfs -stat %b /retail-lake/raw/nifi/store.dat; echo -n 'taille kit   : '; stat -c %s $KIT/data/store/store.dat; echo -n 'SHA-256 HDFS : '; hdfs dfs -cat /retail-lake/raw/nifi/store.dat | sha256sum | cut -d' ' -f1; echo -n 'SHA-256 kit  : '; sha256sum $KIT/data/store/store.dat | cut -d' ' -f1
+------------------------------------------------------------------
+taille HDFS  : 3386
+taille kit   : 3386
+SHA-256 HDFS : a936bc38692bdddc222cf86d08ed9d0feb761af26769212d789cf6729d1808ef
+SHA-256 kit  : a936bc38692bdddc222cf86d08ed9d0feb761af26769212d789cf6729d1808ef
+(code retour : 0)
+
+==================================================================
+[06] Lecture des deux premieres lignes depuis HDFS
+Date : 2026-11-17 16:08:06
+$ hdfs dfs -cat /retail-lake/raw/nifi/store.dat | head -2 | cut -c1-120
+------------------------------------------------------------------
+0|AAAAAAAAAAAAAAAA|2000-08-02||71238|Forest|217|8891512|8AM-12AM|Joshua Watson|6|Unknown|realms sublate quickly outside 
+1|AAAAAAAAAAAAAAAB|2000-07-03||18994|Hillside|244|8751339|8AM-4PM|Gary Gold|3|Unknown|close escapades across the careful
+(code retour : 0)
+
+==================================================================
+[07] Proprietaire et date du fichier ecrit par NiFi
+Date : 2026-11-17 16:08:08
+$ hdfs dfs -stat 'proprietaire=%u groupe=%g droits=%A ecrit=%y' /retail-lake/raw/nifi/store.dat
+------------------------------------------------------------------
+proprietaire=maxim groupe=supergroup droits=rw-r--r-- ecrit=2026-11-17 16:05:08
+(code retour : 0)
+
+==================================================================
+[08] Le depot de l'UC-03 n'a pas ete touche
+Date : 2026-11-17 16:08:09
+$ hdfs dfs -ls /retail-lake/raw/tpcxbb/initial/store
+------------------------------------------------------------------
+Found 1 items
+-r--r--r--   1 maxim supergroup       3386 2026-11-17 14:40 /retail-lake/raw/tpcxbb/initial/store/store.dat
+(code retour : 0)
+
+==================================================================
+[09] Original du kit toujours present
+Date : 2026-11-17 16:08:11
+$ ls -l $KIT/data/store/store.dat
+------------------------------------------------------------------
+-rwxrwxrwx 1 root root 3386 Nov 16 09:52 /home/maxim/kit_tpcxbb/data/store/store.dat
+(code retour : 0)
+
+==================================================================
+[10] Traces de PutHDFS dans le journal de NiFi
+Date : 2026-11-17 16:08:11
+$ grep -hE 'PutHDFS|GetFile' /opt/nifi/logs/nifi-app.log | grep -vi password | tail -5 | cut -c1-220
+------------------------------------------------------------------
+2026-11-17 16:05:07,341 INFO [Timer-Driven Process Thread-8] o.a.n.c.s.TimerDrivenSchedulingAgent Scheduled GetFile[id=e9fd9028-01a1-1000-140f-f444f46b1400] to run with 1 threads
+2026-11-17 16:07:33,951 INFO [NiFi Web Server-245] o.a.n.c.s.StandardProcessScheduler Stopping GetFile[id=e9fd9028-01a1-1000-140f-f444f46b1400]
+2026-11-17 16:07:33,952 INFO [NiFi Web Server-245] o.a.n.controller.StandardProcessorNode Desired State for GetFile[id=e9fd9028-01a1-1000-140f-f444f46b1400] now set to STOPPED
+2026-11-17 16:07:33,955 INFO [Timer-Driven Process Thread-2] o.a.n.c.s.TimerDrivenSchedulingAgent Stopped scheduling GetFile[id=e9fd9028-01a1-1000-140f-f444f46b1400] to run
+2026-11-17 16:07:33,956 INFO [Timer-Driven Process Thread-2] o.a.n.controller.StandardProcessorNode GetFile[id=e9fd9028-01a1-1000-140f-f444f46b1400] has completely stopped. Completing any associated Futures.
+(code retour : 0)
+

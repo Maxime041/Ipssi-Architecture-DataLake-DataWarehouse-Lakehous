@@ -1,0 +1,71 @@
+# UC-04 - Preparation du flux GetFile vers PutHDFS
+# Machine : LAPTOP-5IITUUUR, utilisateur Linux : maxim
+
+==================================================================
+[01] Dossiers locaux de NiFi (crees avec sudo, proprietaire maxim)
+Date : 2026-11-17 15:23:04
+$ ls -ld /data /data/nifi /data/nifi/input /data/nifi/archive /data/nifi/error
+------------------------------------------------------------------
+drwxr-xr-x 3 root  root  4096 Nov 17 15:22 /data
+drwxr-xr-x 5 root  root  4096 Nov 17 15:22 /data/nifi
+drwxr-xr-x 2 maxim maxim 4096 Nov 17 15:22 /data/nifi/archive
+drwxr-xr-x 2 maxim maxim 4096 Nov 17 15:22 /data/nifi/error
+drwxr-xr-x 2 maxim maxim 4096 Nov 17 15:22 /data/nifi/input
+(code retour : 0)
+
+==================================================================
+[02] Fichier choisi pour le premier test : store.dat du lot initial (petit fichier reel du kit)
+Date : 2026-11-17 15:23:04
+$ ls -l "$SRCF"; awk 'END{print NR " lignes"}' "$SRCF"; sha256sum "$SRCF"
+------------------------------------------------------------------
+-rwxrwxrwx 1 root root 3386 Nov 16 09:52 /home/maxim/kit_tpcxbb/data/store/store.dat
+12 lignes
+a936bc38692bdddc222cf86d08ed9d0feb761af26769212d789cf6729d1808ef  /home/maxim/kit_tpcxbb/data/store/store.dat
+(code retour : 0)
+
+==================================================================
+[03] Copie de travail dans le dossier d'entree (l'original du kit n'est pas touche)
+Date : 2026-11-17 15:23:04
+$ cp "$SRCF" /data/nifi/input/ && ls -l /data/nifi/input && sha256sum /data/nifi/input/store.dat
+------------------------------------------------------------------
+total 4
+-rwxr-xr-x 1 maxim maxim 3386 Nov 17 15:23 store.dat
+a936bc38692bdddc222cf86d08ed9d0feb761af26769212d789cf6729d1808ef  /data/nifi/input/store.dat
+(code retour : 0)
+
+==================================================================
+[04] Le dossier d'entree ne contient que le fichier de test
+Date : 2026-11-17 15:23:04
+$ find /data/nifi/input -type f | wc -l
+------------------------------------------------------------------
+1
+(code retour : 0)
+
+==================================================================
+[05] NiFi (compte maxim) peut lire et supprimer dans le dossier d'entree
+Date : 2026-11-17 15:23:04
+$ ps -o user= -p $(pgrep -f 'org.apache.nifi.NiFi' | head -1); [ -r /data/nifi/input/store.dat ] && echo 'lecture : oui'; [ -w /data/nifi/input ] && echo 'ecriture dans le dossier (suppression apres lecture) : oui'
+------------------------------------------------------------------
+maxim
+lecture : oui
+ecriture dans le dossier (suppression apres lecture) : oui
+(code retour : 0)
+
+==================================================================
+[06] Destination HDFS distincte de l'UC-03 : /retail-lake/raw/nifi
+Date : 2026-11-17 15:23:04
+$ hdfs dfs -mkdir -p /retail-lake/raw/nifi && hdfs dfs -ls -d /retail-lake/raw/nifi && hdfs dfs -count /retail-lake/raw/nifi
+------------------------------------------------------------------
+drwxr-xr-x   - maxim supergroup          0 2026-11-17 14:16 /retail-lake/raw/nifi
+           1            0                  0 /retail-lake/raw/nifi
+(code retour : 0)
+
+==================================================================
+[07] Fichiers de configuration Hadoop a donner a PutHDFS
+Date : 2026-11-17 15:23:09
+$ ls -l /opt/hadoop/etc/hadoop/core-site.xml /opt/hadoop/etc/hadoop/hdfs-site.xml
+------------------------------------------------------------------
+-rw-r--r-- 1 maxim maxim 170 Nov 17 12:13 /opt/hadoop/etc/hadoop/core-site.xml
+-rw-r--r-- 1 maxim maxim 403 Nov 17 12:13 /opt/hadoop/etc/hadoop/hdfs-site.xml
+(code retour : 0)
+

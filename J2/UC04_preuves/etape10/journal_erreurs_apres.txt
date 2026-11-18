@@ -1,0 +1,75 @@
+# UC-04 Etape 10 - Erreurs controlees (apres)
+# Machine : LAPTOP-5IITUUUR, utilisateur Linux : maxim
+
+==================================================================
+[01] Erreurs et avertissements de NiFi depuis le debut des tests (2026-11-17 16:13:54)
+Date : 2026-11-17 16:29:56
+$ cat /opt/nifi/logs/nifi-app*.log | awk -v d='2026-11-17 16:13:54' 'substr($0,1,19) >= d' | grep -E ' (ERROR|WARN) ' | grep -vi password | cut -c1-400
+------------------------------------------------------------------
+2026-11-17 16:27:53,773 WARN [Timer-Driven Process Thread-1] o.apache.nifi.processors.hadoop.PutHDFS PutHDFS[id=e9fe7456-01a1-1000-e374-e902185e054e] penalizing StandardFlowFileRecord[uuid=535341de-7883-46f1-847a-83434265c135,claim=StandardContentClaim [resourceClaim=StandardResourceClaim[id=1794927907393-1, container=default, section=1], offset=3386, length=3386],offset=0,name=store.dat,size=3386
+(code retour : 0)
+
+==================================================================
+[02] Attributs du FlowFile en echec journalises par LogAttribute
+Date : 2026-11-17 16:29:56
+$ cat /opt/nifi/logs/nifi-app*.log | awk -v d='2026-11-17 16:13:54' 'substr($0,1,19) >= d' | grep -A 30 'LogAttribute\[' | grep -E 'LogAttribute|filename|path|absolute.path|uuid|file.size|Key:|Value:|---' | head -40 | cut -c1-200
+------------------------------------------------------------------
+2026-11-17 16:25:45,858 INFO [NiFi Web Server-256] o.a.n.c.s.StandardProcessScheduler Starting LogAttribute[id=ea0026fb-01a1-1000-1055-bea7b5a789b4]
+2026-11-17 16:25:45,858 INFO [NiFi Web Server-256] o.a.n.controller.StandardProcessorNode Desired State for LogAttribute[id=ea0026fb-01a1-1000-1055-bea7b5a789b4] now set to RUNNING
+2026-11-17 16:25:45,859 INFO [Timer-Driven Process Thread-7] o.a.n.c.s.TimerDrivenSchedulingAgent Scheduled LogAttribute[id=ea0026fb-01a1-1000-1055-bea7b5a789b4] to run with 1 threads
+2026-11-17 16:26:04,385 INFO [NiFi Web Server-257] o.a.n.c.s.StandardProcessScheduler Stopping LogAttribute[id=ea0026fb-01a1-1000-1055-bea7b5a789b4]
+2026-11-17 16:26:04,385 INFO [NiFi Web Server-257] o.a.n.controller.StandardProcessorNode Desired State for LogAttribute[id=ea0026fb-01a1-1000-1055-bea7b5a789b4] now set to STOPPED
+2026-11-17 16:26:04,385 INFO [Timer-Driven Process Thread-1] o.a.n.c.s.TimerDrivenSchedulingAgent Stopped scheduling LogAttribute[id=ea0026fb-01a1-1000-1055-bea7b5a789b4] to run
+2026-11-17 16:26:04,386 INFO [Timer-Driven Process Thread-1] o.a.n.controller.StandardProcessorNode LogAttribute[id=ea0026fb-01a1-1000-1055-bea7b5a789b4] has completely stopped. Completing any associa
+2026-11-17 16:27:53,773 WARN [Timer-Driven Process Thread-1] o.apache.nifi.processors.hadoop.PutHDFS PutHDFS[id=e9fe7456-01a1-1000-e374-e902185e054e] penalizing StandardFlowFileRecord[uuid=535341de-78
+2026-11-17 16:28:25,260 INFO [NiFi Web Server-255] o.a.n.c.s.StandardProcessScheduler Starting LogAttribute[id=ea0026fb-01a1-1000-1055-bea7b5a789b4]
+2026-11-17 16:28:25,262 INFO [NiFi Web Server-255] o.a.n.controller.StandardProcessorNode Desired State for LogAttribute[id=ea0026fb-01a1-1000-1055-bea7b5a789b4] now set to RUNNING
+2026-11-17 16:28:25,269 INFO [Timer-Driven Process Thread-5] o.a.n.c.s.TimerDrivenSchedulingAgent Scheduled LogAttribute[id=ea0026fb-01a1-1000-1055-bea7b5a789b4] to run with 1 threads
+2026-11-17 16:28:25,311 INFO [Timer-Driven Process Thread-2] o.a.n.processors.standard.LogAttribute LogAttribute[id=ea0026fb-01a1-1000-1055-bea7b5a789b4] logging for FlowFile StandardFlowFileRecord[uu
+Key: 'entryDate'
+Key: 'lineageStartDate'
+Key: 'fileSize'
+Key: 'absolute.path'
+Key: 'file.creationTime'
+Key: 'file.group'
+Key: 'file.lastAccessTime'
+Key: 'file.lastModifiedTime'
+Key: 'file.owner'
+Key: 'file.permissions'
+Key: 'filename'
+Key: 'path'
+Key: 'uuid'
+(code retour : 0)
+
+==================================================================
+[03] Dossier d'entree : la copie a ete lue par GetFile
+Date : 2026-11-17 16:29:56
+$ ls -la /data/nifi/input; echo -n 'fichiers restants : '; find /data/nifi/input -type f | wc -l
+------------------------------------------------------------------
+total 8
+drwxr-xr-x 2 maxim maxim 4096 Nov 17 16:27 .
+drwxr-xr-x 5 root  root  4096 Nov 17 15:22 ..
+fichiers restants : 0
+(code retour : 0)
+
+==================================================================
+[04] HDFS : le fichier de l'etape 9 n'a pas ete ecrase (meme date, meme empreinte)
+Date : 2026-11-17 16:29:56
+$ hdfs dfs -ls /retail-lake/raw/nifi; hdfs dfs -stat 'ecrit=%y' /retail-lake/raw/nifi/store.dat; hdfs dfs -cat /retail-lake/raw/nifi/store.dat | sha256sum
+------------------------------------------------------------------
+Found 1 items
+-rw-r--r--   1 maxim supergroup       3386 2026-11-17 16:05 /retail-lake/raw/nifi/store.dat
+ecrit=2026-11-17 16:05:08
+a936bc38692bdddc222cf86d08ed9d0feb761af26769212d789cf6729d1808ef  -
+(code retour : 0)
+
+==================================================================
+[05] GetFile a retrouve son dossier d'origine (configuration enregistree)
+Date : 2026-11-17 16:30:00
+$ python3 -c "import gzip,json; f=json.load(gzip.open('/opt/nifi/conf/flow.json.gz')); g=[x for x in f['rootGroup']['processGroups'] if x['name'].startswith('UC04')][0]; [print(p['name'], p['scheduledState'], p['properties'].get('Input Directory') or '') for p in g['processors']]"
+------------------------------------------------------------------
+GetFile RUNNING /data/nifi/input
+PutHDFS RUNNING 
+LogAttribute RUNNING 
+(code retour : 0)
+
