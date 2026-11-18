@@ -1,0 +1,172 @@
+# UC-03 Etape 5 - Verification du stockage HDFS
+# Machine : LAPTOP-5IITUUUR (Ubuntu 24.04.5 LTS), utilisateur Linux : maxim, Hadoop 3.5.0
+# Manifeste de reference : manifeste_depot_20261117_143841.csv
+
+==================================================================
+[01] Presence des repertoires attendus (etape 3 + dossiers des tables)
+Date : 2026-11-17 14:50:49
+$ echo -n 'repertoires attendus : '; wc -l < '/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J2/UC03_preuves/etape5/repertoires_attendus.txt'; hdfs dfs -ls -R /retail-lake | grep '^d' | awk '{print $8}' | sort > /tmp/rep_trouves.txt; echo -n 'repertoires trouves  : '; wc -l < /tmp/rep_trouves.txt; echo -n 'attendus absents     : '; comm -23 '/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J2/UC03_preuves/etape5/repertoires_attendus.txt' /tmp/rep_trouves.txt | wc -l; echo 'trouves non prevus   :'; comm -13 '/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J2/UC03_preuves/etape5/repertoires_attendus.txt' /tmp/rep_trouves.txt; rm -f /tmp/rep_trouves.txt
+------------------------------------------------------------------
+repertoires attendus : 105
+repertoires trouves  : 105
+attendus absents     : 0
+trouves non prevus   :
+(code retour : 0)
+
+==================================================================
+[02] Presence des fichiers deposes et tailles (Raw et Bronze contre manifeste)
+Date : 2026-11-17 14:50:51
+$ tail -n +2 '/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J2/UC03_preuves/etape4/manifeste_depot_20261117_143841.csv' | cut -d';' -f5,7 | tr ';' ' ' | sort > /tmp/a.txt; tail -n +2 '/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J2/UC03_preuves/etape4/manifeste_depot_20261117_143841.csv' | cut -d';' -f6,7 | tr ';' ' ' | sort >> /tmp/a.txt; sort -o /tmp/a.txt /tmp/a.txt; hdfs dfs -ls -R /retail-lake/raw/tpcxbb /retail-lake/bronze/tpcxbb | grep '^-' | awk '{print $8, $5}' | sort > /tmp/t.txt; echo -n 'fichiers attendus : '; wc -l < /tmp/a.txt; echo -n 'fichiers trouves  : '; wc -l < /tmp/t.txt; echo -n 'chemin et taille identiques : '; comm -12 /tmp/a.txt /tmp/t.txt | wc -l; echo 'differences :'; diff /tmp/a.txt /tmp/t.txt && echo 'aucune'; rm -f /tmp/a.txt /tmp/t.txt
+------------------------------------------------------------------
+fichiers attendus : 72
+fichiers trouves  : 72
+chemin et taille identiques : 72
+differences :
+aucune
+(code retour : 0)
+
+==================================================================
+[03] Volumes par zone
+Date : 2026-11-17 14:50:53
+$ hdfs dfs -du -h /retail-lake; echo; hdfs dfs -count -h /retail-lake/raw/tpcxbb /retail-lake/bronze/tpcxbb /retail-lake/logs/ingestion
+------------------------------------------------------------------
+986.1 M  986.1 M  /retail-lake/bronze
+0        0        /retail-lake/gold
+12.1 K   12.1 K   /retail-lake/logs
+0        0        /retail-lake/quality
+986.1 M  986.1 M  /retail-lake/raw
+0        0        /retail-lake/silver
+
+          37           36            986.1 M /retail-lake/raw/tpcxbb
+          58           36            986.1 M /retail-lake/bronze/tpcxbb
+           1            1             12.1 K /retail-lake/logs/ingestion
+(code retour : 0)
+
+==================================================================
+[04] Sante des blocs de tout le Data Lake (fsck)
+Date : 2026-11-17 14:50:56
+$ hdfs fsck /retail-lake | sed -n '/Status/,/Number of racks/p'
+------------------------------------------------------------------
+Connecting to namenode via http://localhost:9870/fsck?ugi=maxim&path=%2Fretail-lake
+Status: HEALTHY
+ Number of data-nodes:	1
+ Number of racks:		1
+(code retour : 0)
+
+==================================================================
+[05] Blocs du plus gros fichier : inventory.dat (Raw, lot initial)
+Date : 2026-11-17 14:50:58
+$ hdfs fsck /retail-lake/raw/tpcxbb/initial/inventory/inventory.dat -files -blocks -locations | grep -E 'inventory.dat|blk_|Total blocks' | sed -e 's/DatanodeInfoWithStorage/DN/g' | cut -c1-170
+------------------------------------------------------------------
+Connecting to namenode via http://localhost:9870/fsck?ugi=maxim&files=1&blocks=1&locations=1&path=%2Fretail-lake%2Fraw%2Ftpcxbb%2Finitial%2Finventory%2Finventory.dat
+FSCK started by maxim (auth:SIMPLE) from /127.0.0.1 for path /retail-lake/raw/tpcxbb/initial/inventory/inventory.dat at Tue Nov 17 14:50:59 CET 2026
+/retail-lake/raw/tpcxbb/initial/inventory/inventory.dat 424943678 bytes, replicated: replication=1, 4 block(s):  OK
+0. BP-1136022543-127.0.1.1-1794913997575:blk_1073741831_1007 len=134217728 Live_repl=1  [DN[127.0.0.1:9866,DS-3114da8e-45ae-4081-b5e7-cdfa53f414d9,DISK]]
+1. BP-1136022543-127.0.1.1-1794913997575:blk_1073741832_1008 len=134217728 Live_repl=1  [DN[127.0.0.1:9866,DS-3114da8e-45ae-4081-b5e7-cdfa53f414d9,DISK]]
+2. BP-1136022543-127.0.1.1-1794913997575:blk_1073741833_1009 len=134217728 Live_repl=1  [DN[127.0.0.1:9866,DS-3114da8e-45ae-4081-b5e7-cdfa53f414d9,DISK]]
+3. BP-1136022543-127.0.1.1-1794913997575:blk_1073741834_1010 len=22290494 Live_repl=1  [DN[127.0.0.1:9866,DS-3114da8e-45ae-4081-b5e7-cdfa53f414d9,DISK]]
+ Total blocks (validated):	4 (avg. block size 106235919 B)
+The filesystem under path '/retail-lake/raw/tpcxbb/initial/inventory/inventory.dat' is HEALTHY
+(code retour : 0)
+
+==================================================================
+[06] Permissions : Raw en lecture seule, Bronze modifiable par le proprietaire
+Date : 2026-11-17 14:51:00
+$ hdfs dfs -ls -d /retail-lake/raw/tpcxbb /retail-lake/raw/tpcxbb/initial /retail-lake/raw/tpcxbb/initial/store_sales /retail-lake/bronze/tpcxbb '/retail-lake/bronze/tpcxbb/store_sales/lot=initial'; hdfs dfs -ls /retail-lake/raw/tpcxbb/initial/store_sales '/retail-lake/bronze/tpcxbb/store_sales/lot=initial'; echo; echo -n 'fichiers Raw sans droit ecriture : '; hdfs dfs -ls -R /retail-lake/raw/tpcxbb | grep '^-' | grep -c '^-r--r--r--'
+------------------------------------------------------------------
+dr-xr-xr-x   - maxim supergroup          0 2026-11-17 14:16 /retail-lake/raw/tpcxbb
+dr-xr-xr-x   - maxim supergroup          0 2026-11-17 14:40 /retail-lake/raw/tpcxbb/initial
+dr-xr-xr-x   - maxim supergroup          0 2026-11-17 14:40 /retail-lake/raw/tpcxbb/initial/store_sales
+drwxr-xr-x   - maxim supergroup          0 2026-11-17 14:35 /retail-lake/bronze/tpcxbb
+drwxr-xr-x   - maxim supergroup          0 2026-11-17 14:41 /retail-lake/bronze/tpcxbb/store_sales/lot=initial
+Found 1 items
+-r--r--r--   1 maxim supergroup   92764700 2026-11-17 14:40 /retail-lake/raw/tpcxbb/initial/store_sales/store_sales.dat
+Found 1 items
+-rw-r--r--   1 maxim supergroup   92764700 2026-11-17 14:41 /retail-lake/bronze/tpcxbb/store_sales/lot=initial/store_sales.dat
+
+fichiers Raw sans droit ecriture : 36
+(code retour : 0)
+
+==================================================================
+[07] Test : un autre utilisateur peut lire Raw
+Date : 2026-11-17 14:51:04
+$ HADOOP_USER_NAME=invite hdfs dfs -cat /retail-lake/raw/tpcxbb/initial/store/store.dat 2>&1 | head -1 | cut -c1-80
+------------------------------------------------------------------
+0|AAAAAAAAAAAAAAAA|2000-08-02||71238|Forest|217|8891512|8AM-12AM|Joshua Watson|6
+(code retour : 0)
+
+==================================================================
+[08] Test : un autre utilisateur ne peut pas supprimer un fichier de Raw (doit etre refuse)
+Date : 2026-11-17 14:51:04
+$ HADOOP_USER_NAME=invite hdfs dfs -rm -skipTrash /retail-lake/raw/tpcxbb/initial/store/store.dat
+------------------------------------------------------------------
+rm: Permission denied: user=invite, access=WRITE, inode="/retail-lake/raw/tpcxbb/initial/store":maxim:supergroup:dr-xr-xr-x
+(code retour : 1)
+
+==================================================================
+[09] Test : un autre utilisateur ne peut pas ecrire dans Bronze (doit etre refuse)
+Date : 2026-11-17 14:51:05
+$ HADOOP_USER_NAME=invite hdfs dfs -touchz '/retail-lake/bronze/tpcxbb/store/lot=initial/essai.txt'
+------------------------------------------------------------------
+touchz: Permission denied: user=invite, access=WRITE, inode="/retail-lake/bronze/tpcxbb/store/lot=initial":maxim:supergroup:drwxr-xr-x
+(code retour : 1)
+
+==================================================================
+[10] Verification : le fichier de Raw est toujours la, aucun fichier ajoute dans Bronze
+Date : 2026-11-17 14:51:07
+$ hdfs dfs -ls /retail-lake/raw/tpcxbb/initial/store '/retail-lake/bronze/tpcxbb/store/lot=initial'
+------------------------------------------------------------------
+Found 1 items
+-r--r--r--   1 maxim supergroup       3386 2026-11-17 14:40 /retail-lake/raw/tpcxbb/initial/store/store.dat
+Found 1 items
+-rw-r--r--   1 maxim supergroup       3386 2026-11-17 14:41 /retail-lake/bronze/tpcxbb/store/lot=initial/store.dat
+(code retour : 0)
+
+==================================================================
+[11] Lecture : 3 premieres lignes de customer.dat (Bronze, lot refresh)
+Date : 2026-11-17 14:51:09
+$ hdfs dfs -cat '/retail-lake/bronze/tpcxbb/customer/lot=refresh/customer.dat' 2>/dev/null | head -3 | cut -c1-150
+------------------------------------------------------------------
+99000|AAAAAAAAAAAAFQLS|1743789|2912|15817|12124|46820|Mr.|Michael|Broyles|N|30|8|1961|LATVIA|vtJOqYQQJ7|Michael.Broyles@peacemail.com|0ka0ymX
+99001|AAAAAAAAAAAAFQLT|987779|5060|31776|42067|99363|Mr.|Dennis|Tobin|N|22|4|1949|MAURITANIA|lnZ4|Dennis.Tobin@privacyharbor.com|ro7j4k
+99002|AAAAAAAAAAAAFQLU|1423325|5795|5270|73986|42194|Sir|Clifford|Rice|N|19|10|1940|LIECHTENSTEIN|R36tSZ|Clifford.Rice@gmx.us|dgHE
+(code retour : 0)
+
+==================================================================
+[12] Recuperation controlee de web_sales.dat (Raw, lot initial) dans /tmp puis comparaison avec le kit
+Date : 2026-11-17 14:51:10
+$ rm -rf /tmp/recup && mkdir /tmp/recup && hdfs dfs -get /retail-lake/raw/tpcxbb/initial/web_sales/web_sales.dat /tmp/recup/ && ls -l /tmp/recup/web_sales.dat $KIT/data/web_sales/web_sales.dat && sha256sum /tmp/recup/web_sales.dat $KIT/data/web_sales/web_sales.dat && cmp /tmp/recup/web_sales.dat $KIT/data/web_sales/web_sales.dat && echo 'identique octet par octet'; rm -rf /tmp/recup
+------------------------------------------------------------------
+-rwxrwxrwx 1 root  root  133790574 Nov 16 09:52 /home/maxim/kit_tpcxbb/data/web_sales/web_sales.dat
+-rw-r--r-- 1 maxim maxim 133790574 Nov 17 14:51 /tmp/recup/web_sales.dat
+e9c5a08589977dd073a3952ec9850aac6f5648f40dfee2d4640bae78577bff14  /tmp/recup/web_sales.dat
+e9c5a08589977dd073a3952ec9850aac6f5648f40dfee2d4640bae78577bff14  /home/maxim/kit_tpcxbb/data/web_sales/web_sales.dat
+identique octet par octet
+(code retour : 0)
+
+==================================================================
+[13] Integrite : SHA-256 du contenu lu dans HDFS (Raw et Bronze) contre SHA-256 local du manifeste (calcul de 14:51:20 a 14:53:16)
+Date : 2026-11-17 14:53:16
+$ tail -n +2 '/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J2/UC03_preuves/etape5/integrite_sha256.csv' | awk -F';' '{n++; if($7=="identique") ok++; else print "DIFFERENT :", $1, $3} END{printf "%d fichiers compares (x2 : Raw et Bronze), %d identiques, %d differents\n", n, ok, n-ok}'; echo; echo 'Exemple :'; grep ';store_sales.dat;' '/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J2/UC03_preuves/etape5/integrite_sha256.csv' | head -1 | tr ';' '\n' | paste -d' ' <(printf 'lot\ntable\nfichier\nlocal\nraw\nbronze\nresultat\n') -
+------------------------------------------------------------------
+36 fichiers compares (x2 : Raw et Bronze), 36 identiques, 0 differents
+
+Exemple :
+lot initial
+table store_sales
+fichier store_sales.dat
+local 7e0a7f16b47483741754bb641c92601dd7384dacc8331d0bcfb8abac82ed3d2e
+raw 7e0a7f16b47483741754bb641c92601dd7384dacc8331d0bcfb8abac82ed3d2e
+bronze 7e0a7f16b47483741754bb641c92601dd7384dacc8331d0bcfb8abac82ed3d2e
+resultat identique
+(code retour : 0)
+
+==================================================================
+[14] Empreinte interne HDFS (MD5 des CRC des blocs) : Raw et Bronze de store_sales.dat
+Date : 2026-11-17 14:53:16
+$ hdfs dfs -checksum /retail-lake/raw/tpcxbb/initial/store_sales/store_sales.dat '/retail-lake/bronze/tpcxbb/store_sales/lot=initial/store_sales.dat'
+------------------------------------------------------------------
+/retail-lake/raw/tpcxbb/initial/store_sales/store_sales.dat	MD5-of-0MD5-of-512CRC32C	000002000000000000000000cb3d39d54ed8213ba08dfa4be2768183
+/retail-lake/bronze/tpcxbb/store_sales/lot=initial/store_sales.dat	MD5-of-0MD5-of-512CRC32C	000002000000000000000000cb3d39d54ed8213ba08dfa4be2768183
+(code retour : 0)
+

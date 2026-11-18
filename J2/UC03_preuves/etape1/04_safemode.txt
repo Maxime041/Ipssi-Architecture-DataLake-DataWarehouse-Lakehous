@@ -1,0 +1,6 @@
+# Date      : 2026-11-17 12:47:05 CET
+# Machine   : LAPTOP-5IITUUUR (Ubuntu 24.04.5 LTS)
+# Utilisateur : maxim
+$ hdfs dfsadmin -safemode get
+
+Safe mode is OFF

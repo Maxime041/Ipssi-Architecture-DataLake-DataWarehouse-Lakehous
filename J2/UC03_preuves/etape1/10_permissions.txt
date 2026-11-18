@@ -1,0 +1,11 @@
+# Date      : 2026-11-17 12:47:51 CET
+# Machine   : LAPTOP-5IITUUUR (Ubuntu 24.04.5 LTS)
+# Utilisateur : maxim
+
+dfs.permissions.enabled            true
+dfs.permissions.superusergroup     supergroup
+hadoop.security.authentication     simple
+dfs.namenode.checkpoint.period     3600
+
+$ hdfs dfs -ls -d /
+drwxr-xr-x   - maxim supergroup          0 1970-01-01 01:00 /

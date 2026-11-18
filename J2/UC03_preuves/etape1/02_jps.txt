@@ -1,0 +1,11 @@
+# Date      : 2026-11-17 12:47:04 CET
+# Machine   : LAPTOP-5IITUUUR (Ubuntu 24.04.5 LTS)
+# Utilisateur : maxim
+$ jps
+
+12065 DataNode
+12327 SecondaryNameNode
+13609 NiFi
+13578 BootstrapProcess
+14539 Jps
+11919 NameNode

@@ -1,0 +1,402 @@
+# UC-03 Etape 4 - Depot des donnees TPCx-BB
+# Machine : LAPTOP-5IITUUUR (Ubuntu 24.04.5 LTS), utilisateur Linux : maxim, Hadoop 3.5.0
+# Source locale : /mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project
+
+==================================================================
+[01] Controle avant depot : nombre de fichiers, lisibilite, taille totale
+Date : 2026-11-17 14:35:05
+$ tail -n +2 '/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J2/UC03_preuves/etape4/controle_avant_depot.csv' | awk -F';' '{n++; if($5=="oui") r++; s+=$6} END{printf "%d fichiers, %d lisibles, %d octets\n", n, r, s}'
+------------------------------------------------------------------
+36 fichiers, 36 lisibles, 1033993587 octets
+(code retour : 0)
+
+==================================================================
+[02] Exemple detaille avant depot : store_sales.dat (lot initial)
+Date : 2026-11-17 14:35:05
+$ f="$SRC/data/store_sales/store_sales.dat"; ls -l "$f"; file "$f"; echo; echo 'Deux premieres lignes :'; head -2 "$f"; echo; echo -n 'Colonnes (separateur |) : '; head -1 "$f" | awk -F'|' '{print NF}'; echo -n 'Lignes : '; awk 'END{print NR}' "$f"
+------------------------------------------------------------------
+-rwxrwxrwx 1 root root 92764700 Nov 16 09:52 /mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/store_sales/store_sales.dat
+/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/store_sales/store_sales.dat: ASCII text, with CRLF line terminators
+
+Deux premieres lignes :
+36890|71480|10001|44404|493944|2898|44093|10|294|0|31|18.00|30.78|23.08|238.70|715.48|558.00|954.18|21.46|0.00|715.48|736.94|157.48
+36890|71480|10000|44404|493944|2898|44093|10|279|0|54|99.21|148.82|83.34|3535.92|4500.36|5357.34|8036.28|225.02|0.00|4500.36|4725.38|-856.98
+
+Colonnes (separateur |) : 23
+Lignes : 667579
+(code retour : 0)
+
+==================================================================
+[03] Etat de RAW avant depot
+Date : 2026-11-17 14:35:10
+$ hdfs dfs -ls -R /retail-lake/raw
+------------------------------------------------------------------
+drwxr-xr-x   - maxim supergroup          0 2026-11-17 14:16 /retail-lake/raw/nifi
+drwxr-xr-x   - maxim supergroup          0 2026-11-17 14:16 /retail-lake/raw/tpcxbb
+drwxr-xr-x   - maxim supergroup          0 2026-11-17 14:16 /retail-lake/raw/tpcxbb/initial
+drwxr-xr-x   - maxim supergroup          0 2026-11-17 14:16 /retail-lake/raw/tpcxbb/refresh
+(code retour : 0)
+
+==================================================================
+[04] Depot RAW du lot initial : copie de tout le dossier data du kit
+Date : 2026-11-17 14:35:12
+$ if hdfs dfs -test -e /retail-lake/raw/tpcxbb/initial/store_sales; then echo 'deja depose : rien a faire'; else hdfs dfs -put "$SRC/data"/* /retail-lake/raw/tpcxbb/initial/; fi
+------------------------------------------------------------------
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/customer': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/customer_address': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/customer_demographics': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/date_dim': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/household_demographics': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/income_band': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/inventory': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/item': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/item_marketprices': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/product_reviews': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/promotion': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/reason': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/ship_mode': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/store': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/store_returns': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/store_sales': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/time_dim': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/warehouse': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/web_clickstreams': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/web_page': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/web_returns': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/web_sales': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data/web_site': No such file or directory
+(code retour : 1)
+
+==================================================================
+[05] Depot RAW du lot refresh : copie de tout le dossier data_refresh du kit
+Date : 2026-11-17 14:35:16
+$ if hdfs dfs -test -e /retail-lake/raw/tpcxbb/refresh/store_sales; then echo 'deja depose : rien a faire'; else hdfs dfs -put "$SRC/data_refresh"/* /retail-lake/raw/tpcxbb/refresh/; fi
+------------------------------------------------------------------
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data_refresh/customer': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data_refresh/customer_address': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data_refresh/inventory': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data_refresh/item': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data_refresh/item_marketprices': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data_refresh/product_reviews': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data_refresh/store_returns': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data_refresh/store_sales': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data_refresh/web_clickstreams': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data_refresh/web_returns': No such file or directory
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J1/retail_project/retail_project/data_refresh/web_sales': No such file or directory
+(code retour : 1)
+
+==================================================================
+[06] Creation des dossiers BRONZE du lot initial (23 tables)
+Date : 2026-11-17 14:35:18
+$ hdfs dfs -mkdir -p /retail-lake/bronze/tpcxbb/customer/lot=initial /retail-lake/bronze/tpcxbb/customer_address/lot=initial /retail-lake/bronze/tpcxbb/customer_demographics/lot=initial /retail-lake/bronze/tpcxbb/date_dim/lot=initial /retail-lake/bronze/tpcxbb/household_demographics/lot=initial /retail-lake/bronze/tpcxbb/income_band/lot=initial /retail-lake/bronze/tpcxbb/inventory/lot=initial /retail-lake/bronze/tpcxbb/item/lot=initial /retail-lake/bronze/tpcxbb/item_marketprices/lot=initial /retail-lake/bronze/tpcxbb/product_reviews/lot=initial /retail-lake/bronze/tpcxbb/promotion/lot=initial /retail-lake/bronze/tpcxbb/reason/lot=initial /retail-lake/bronze/tpcxbb/ship_mode/lot=initial /retail-lake/bronze/tpcxbb/store/lot=initial /retail-lake/bronze/tpcxbb/store_returns/lot=initial /retail-lake/bronze/tpcxbb/store_sales/lot=initial /retail-lake/bronze/tpcxbb/time_dim/lot=initial /retail-lake/bronze/tpcxbb/warehouse/lot=initial /retail-lake/bronze/tpcxbb/web_clickstreams/lot=initial /retail-lake/bronze/tpcxbb/web_page/lot=initial /retail-lake/bronze/tpcxbb/web_returns/lot=initial /retail-lake/bronze/tpcxbb/web_sales/lot=initial /retail-lake/bronze/tpcxbb/web_site/lot=initial
+------------------------------------------------------------------
+(code retour : 0)
+
+==================================================================
+[07] BRONZE : customer, lot initial
+Date : 2026-11-17 14:35:20
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/customer/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/customer/*' /retail-lake/bronze/tpcxbb/customer/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/customer/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[08] BRONZE : customer_address, lot initial
+Date : 2026-11-17 14:35:21
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/customer_address/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/customer_address/*' /retail-lake/bronze/tpcxbb/customer_address/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/customer_address/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[09] BRONZE : customer_demographics, lot initial
+Date : 2026-11-17 14:35:25
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/customer_demographics/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/customer_demographics/*' /retail-lake/bronze/tpcxbb/customer_demographics/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/customer_demographics/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[10] BRONZE : date_dim, lot initial
+Date : 2026-11-17 14:35:28
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/date_dim/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/date_dim/*' /retail-lake/bronze/tpcxbb/date_dim/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/date_dim/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[11] BRONZE : household_demographics, lot initial
+Date : 2026-11-17 14:35:31
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/household_demographics/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/household_demographics/*' /retail-lake/bronze/tpcxbb/household_demographics/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/household_demographics/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[12] BRONZE : income_band, lot initial
+Date : 2026-11-17 14:35:34
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/income_band/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/income_band/*' /retail-lake/bronze/tpcxbb/income_band/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/income_band/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[13] BRONZE : inventory, lot initial
+Date : 2026-11-17 14:35:37
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/inventory/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/inventory/*' /retail-lake/bronze/tpcxbb/inventory/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/inventory/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[14] BRONZE : item, lot initial
+Date : 2026-11-17 14:35:40
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/item/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/item/*' /retail-lake/bronze/tpcxbb/item/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/item/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[15] BRONZE : item_marketprices, lot initial
+Date : 2026-11-17 14:35:43
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/item_marketprices/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/item_marketprices/*' /retail-lake/bronze/tpcxbb/item_marketprices/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/item_marketprices/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[16] BRONZE : product_reviews, lot initial
+Date : 2026-11-17 14:35:46
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/product_reviews/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/product_reviews/*' /retail-lake/bronze/tpcxbb/product_reviews/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/product_reviews/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[17] BRONZE : promotion, lot initial
+Date : 2026-11-17 14:35:49
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/promotion/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/promotion/*' /retail-lake/bronze/tpcxbb/promotion/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/promotion/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[18] BRONZE : reason, lot initial
+Date : 2026-11-17 14:35:51
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/reason/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/reason/*' /retail-lake/bronze/tpcxbb/reason/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/reason/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[19] BRONZE : ship_mode, lot initial
+Date : 2026-11-17 14:35:54
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/ship_mode/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/ship_mode/*' /retail-lake/bronze/tpcxbb/ship_mode/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/ship_mode/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[20] BRONZE : store, lot initial
+Date : 2026-11-17 14:35:58
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/store/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/store/*' /retail-lake/bronze/tpcxbb/store/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/store/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[21] BRONZE : store_returns, lot initial
+Date : 2026-11-17 14:36:01
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/store_returns/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/store_returns/*' /retail-lake/bronze/tpcxbb/store_returns/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/store_returns/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[22] BRONZE : store_sales, lot initial
+Date : 2026-11-17 14:36:04
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/store_sales/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/store_sales/*' /retail-lake/bronze/tpcxbb/store_sales/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/store_sales/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[23] BRONZE : time_dim, lot initial
+Date : 2026-11-17 14:36:07
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/time_dim/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/time_dim/*' /retail-lake/bronze/tpcxbb/time_dim/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/time_dim/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[24] BRONZE : warehouse, lot initial
+Date : 2026-11-17 14:36:10
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/warehouse/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/warehouse/*' /retail-lake/bronze/tpcxbb/warehouse/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/warehouse/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[25] BRONZE : web_clickstreams, lot initial
+Date : 2026-11-17 14:36:13
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/web_clickstreams/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/web_clickstreams/*' /retail-lake/bronze/tpcxbb/web_clickstreams/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/web_clickstreams/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[26] BRONZE : web_page, lot initial
+Date : 2026-11-17 14:36:16
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/web_page/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/web_page/*' /retail-lake/bronze/tpcxbb/web_page/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/web_page/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[27] BRONZE : web_returns, lot initial
+Date : 2026-11-17 14:36:20
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/web_returns/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/web_returns/*' /retail-lake/bronze/tpcxbb/web_returns/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/web_returns/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[28] BRONZE : web_sales, lot initial
+Date : 2026-11-17 14:36:20
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/web_sales/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/web_sales/*' /retail-lake/bronze/tpcxbb/web_sales/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/web_sales/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[29] BRONZE : web_site, lot initial
+Date : 2026-11-17 14:36:24
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/web_site/lot=initial | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/initial/web_site/*' /retail-lake/bronze/tpcxbb/web_site/lot=initial/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/initial/web_site/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[30] Creation des dossiers BRONZE du lot refresh (11 tables)
+Date : 2026-11-17 14:36:27
+$ hdfs dfs -mkdir -p /retail-lake/bronze/tpcxbb/customer/lot=refresh /retail-lake/bronze/tpcxbb/customer_address/lot=refresh /retail-lake/bronze/tpcxbb/inventory/lot=refresh /retail-lake/bronze/tpcxbb/item/lot=refresh /retail-lake/bronze/tpcxbb/item_marketprices/lot=refresh /retail-lake/bronze/tpcxbb/product_reviews/lot=refresh /retail-lake/bronze/tpcxbb/store_returns/lot=refresh /retail-lake/bronze/tpcxbb/store_sales/lot=refresh /retail-lake/bronze/tpcxbb/web_clickstreams/lot=refresh /retail-lake/bronze/tpcxbb/web_returns/lot=refresh /retail-lake/bronze/tpcxbb/web_sales/lot=refresh
+------------------------------------------------------------------
+(code retour : 0)
+
+==================================================================
+[31] BRONZE : customer, lot refresh
+Date : 2026-11-17 14:36:29
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/customer/lot=refresh | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/refresh/customer/*' /retail-lake/bronze/tpcxbb/customer/lot=refresh/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/refresh/customer/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[32] BRONZE : customer_address, lot refresh
+Date : 2026-11-17 14:36:32
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/customer_address/lot=refresh | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/refresh/customer_address/*' /retail-lake/bronze/tpcxbb/customer_address/lot=refresh/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/refresh/customer_address/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[33] BRONZE : inventory, lot refresh
+Date : 2026-11-17 14:36:35
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/inventory/lot=refresh | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/refresh/inventory/*' /retail-lake/bronze/tpcxbb/inventory/lot=refresh/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/refresh/inventory/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[34] BRONZE : item, lot refresh
+Date : 2026-11-17 14:36:38
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/item/lot=refresh | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/refresh/item/*' /retail-lake/bronze/tpcxbb/item/lot=refresh/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/refresh/item/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[35] BRONZE : item_marketprices, lot refresh
+Date : 2026-11-17 14:36:41
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/item_marketprices/lot=refresh | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/refresh/item_marketprices/*' /retail-lake/bronze/tpcxbb/item_marketprices/lot=refresh/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/refresh/item_marketprices/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[36] BRONZE : product_reviews, lot refresh
+Date : 2026-11-17 14:36:44
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/product_reviews/lot=refresh | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/refresh/product_reviews/*' /retail-lake/bronze/tpcxbb/product_reviews/lot=refresh/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/refresh/product_reviews/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[37] BRONZE : store_returns, lot refresh
+Date : 2026-11-17 14:36:47
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/store_returns/lot=refresh | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/refresh/store_returns/*' /retail-lake/bronze/tpcxbb/store_returns/lot=refresh/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/refresh/store_returns/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[38] BRONZE : store_sales, lot refresh
+Date : 2026-11-17 14:36:50
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/store_sales/lot=refresh | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/refresh/store_sales/*' /retail-lake/bronze/tpcxbb/store_sales/lot=refresh/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/refresh/store_sales/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[39] BRONZE : web_clickstreams, lot refresh
+Date : 2026-11-17 14:36:51
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/web_clickstreams/lot=refresh | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/refresh/web_clickstreams/*' /retail-lake/bronze/tpcxbb/web_clickstreams/lot=refresh/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/refresh/web_clickstreams/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[40] BRONZE : web_returns, lot refresh
+Date : 2026-11-17 14:36:54
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/web_returns/lot=refresh | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/refresh/web_returns/*' /retail-lake/bronze/tpcxbb/web_returns/lot=refresh/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/refresh/web_returns/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[41] BRONZE : web_sales, lot refresh
+Date : 2026-11-17 14:36:57
+$ if [ $(hdfs dfs -count /retail-lake/bronze/tpcxbb/web_sales/lot=refresh | awk '{print $2}') -gt 0 ]; then echo 'deja range : rien a faire'; else hdfs dfs -cp '/retail-lake/raw/tpcxbb/refresh/web_sales/*' /retail-lake/bronze/tpcxbb/web_sales/lot=refresh/; fi
+------------------------------------------------------------------
+cp: `/retail-lake/raw/tpcxbb/refresh/web_sales/*': No such file or directory
+(code retour : 1)
+
+==================================================================
+[42] Enregistrement du manifeste dans HDFS (logs/ingestion)
+Date : 2026-11-17 14:37:01
+$ hdfs dfs -put '/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J2/UC03_preuves/etape4/manifeste_depot_20261117_143337.csv' /retail-lake/logs/ingestion/ && hdfs dfs -ls /retail-lake/logs/ingestion
+------------------------------------------------------------------
+put: `/mnt/c/xampp/htdocs/dashboard/Perso/Cours/Architecture DataLake, DataWarehouse, Lakehous/J2/UC03_preuves/etape4/manifeste_depot_20261117_143337.csv': No such file or directory
+(code retour : 1)
+
+==================================================================
+[43] RAW en lecture seule : retrait du droit d'ecriture
+Date : 2026-11-17 14:37:03
+$ hdfs dfs -chmod -R a-w /retail-lake/raw/tpcxbb && hdfs dfs -ls -d /retail-lake/raw/tpcxbb /retail-lake/raw/tpcxbb/initial /retail-lake/raw/tpcxbb/initial/store_sales && hdfs dfs -ls /retail-lake/raw/tpcxbb/initial/store_sales
+------------------------------------------------------------------
+dr-xr-xr-x   - maxim supergroup          0 2026-11-17 14:16 /retail-lake/raw/tpcxbb
+dr-xr-xr-x   - maxim supergroup          0 2026-11-17 14:16 /retail-lake/raw/tpcxbb/initial
+ls: `/retail-lake/raw/tpcxbb/initial/store_sales': No such file or directory
+(code retour : 1)
+
+
+==================================================================
+# Diagnostic du 1er essai (2026-11-17 14:38) : test sur deux petits fichiers dans /tmp
+$ hdfs dfs -put "/tmp/avec espace/f.txt" /tmp/test_chemins/espace.txt
+put: `/tmp/avec espace/f.txt': No such file or directory
+(code retour : 1)
+$ hdfs dfs -put "/tmp/avec, virgule/f.txt" /tmp/test_chemins/virgule.txt
+put: `/tmp/avec, virgule/f.txt': No such file or directory
+(code retour : 1)
+Conclusion : un espace dans le chemin local suffit a faire echouer hdfs dfs -put.
+Correction : lien symbolique ~/kit_tpcxbb (sans espace) vers le dossier du kit, puis nouvel essai.

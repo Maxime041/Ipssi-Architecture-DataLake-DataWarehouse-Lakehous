@@ -1,0 +1,49 @@
+# Date      : 2026-11-17 12:47:04 CET
+# Machine   : LAPTOP-5IITUUUR (Ubuntu 24.04.5 LTS)
+# Utilisateur : maxim
+$ hdfs dfsadmin -report
+
+Configured Capacity: 1081101176832 (1006.85 GB)
+Present Capacity: 1019018805248 (949.04 GB)
+DFS Remaining: 1019018776576 (949.04 GB)
+DFS Used: 28672 (28 KB)
+DFS Used%: 0.00%
+Replicated Blocks:
+	Under replicated blocks: 0
+	Blocks with corrupt replicas: 0
+	Missing blocks: 0
+	Missing blocks (with replication factor 1): 0
+	Badly Distributed Blocks: 0
+	Low redundancy blocks with highest priority to recover: 0
+	Pending deletion blocks: 0
+Erasure Coded Block Groups: 
+	Low redundancy block groups: 0
+	Block groups with corrupt internal blocks: 0
+	Missing block groups: 0
+	Badly Distributed Blocks: 0
+	Low redundancy blocks with highest priority to recover: 0
+	Pending deletion blocks: 0
+
+-------------------------------------------------
+Live datanodes (1):
+
+Name: 127.0.0.1:9866 (localhost)
+Hostname: LAPTOP-5IITUUUR.localdomain
+Decommission Status : Normal
+Configured Capacity: 1081101176832 (1006.85 GB)
+DFS Used: 28672 (28 KB)
+Non DFS Used: 7090016256 (6.60 GB)
+DFS Remaining: 1019018776576 (949.04 GB)
+DFS Used%: 0.00%
+DFS Remaining%: 94.26%
+Configured Cache Capacity: 0 (0 B)
+Cache Used: 0 (0 B)
+Cache Remaining: 0 (0 B)
+Cache Used%: 100.00%
+Cache Remaining%: 0.00%
+Xceivers: 0
+Last contact: Tue Nov 17 12:47:04 CET 2026
+Last Block Report: Tue Nov 17 12:13:23 CET 2026
+Num of Blocks: 0
+
+

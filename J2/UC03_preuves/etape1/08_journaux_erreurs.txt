@@ -1,0 +1,19 @@
+# Date      : 2026-11-17 12:47:12 CET
+# Machine   : LAPTOP-5IITUUUR (Ubuntu 24.04.5 LTS)
+# Utilisateur : maxim
+$ for f in $HADOOP_HOME/logs/*.log; do echo "--- $(basename $f)"; grep -cE ' (ERROR|FATAL) ' $f | sed 's/^/lignes ERROR ou FATAL : /'; grep -E ' (WARN|ERROR|FATAL) ' $f | cut -c1-200 | sort -u -k5 | head -5; done
+
+--- hadoop-maxim-datanode-LAPTOP-5IITUUUR.log
+lignes ERROR ou FATAL : 0
+2026-11-17 12:13:22,650 WARN org.apache.hadoop.hdfs.server.datanode.web.DatanodeHttpServer: Got null for restCsrfPreventionFilter - will not do any filtering.
+2026-11-17 12:13:22,457 WARN org.apache.hadoop.security.authentication.server.AuthenticationFilter: Unable to initialize FileSignerSecretProvider, falling back to use random secrets. Reason: Could not
+2026-11-17 12:13:23,356 WARN org.apache.hadoop.hdfs.server.datanode.DirectoryScanner: dfs.datanode.directoryscan.throttle.limit.ms.per.sec set to value above 1000 ms/sec. Assuming default value of -1
+2026-11-17 12:13:23,286 WARN org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl: dfsUsed file missing in /home/maxim/hadoop-data/datanode/current/BP-1136022543-127.0.1.1-1794913997575
+--- hadoop-maxim-namenode-LAPTOP-5IITUUUR.log
+lignes ERROR ou FATAL : 0
+2026-11-17 12:13:21,142 WARN org.apache.hadoop.hdfs.server.namenode.FSNamesystem: Only one image storage directory (dfs.namenode.name.dir) configured. Beware of data loss due to lack of redundant stor
+2026-11-17 12:13:21,142 WARN org.apache.hadoop.hdfs.server.namenode.FSNamesystem: Only one namespace edits storage directory (dfs.namenode.edits.dir) configured. Beware of data loss due to lack of red
+2026-11-17 12:13:19,794 WARN org.apache.hadoop.security.authentication.server.AuthenticationFilter: Unable to initialize FileSignerSecretProvider, falling back to use random secrets. Reason: Could not
+--- hadoop-maxim-secondarynamenode-LAPTOP-5IITUUUR.log
+lignes ERROR ou FATAL : 0
+2026-11-17 12:13:25,601 WARN org.apache.hadoop.security.authentication.server.AuthenticationFilter: Unable to initialize FileSignerSecretProvider, falling back to use random secrets. Reason: Could not
