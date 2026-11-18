@@ -1,0 +1,7 @@
+# Les scripts sont executes sous Ubuntu (WSL) : fins de ligne Unix obligatoires,
+# quel que soit le reglage core.autocrlf du poste Windows.
+*.sh    text eol=lf
+*.py    text eol=lf
+*.js    text eol=lf
+*.json  text eol=lf
+*.ipynb text eol=lf
