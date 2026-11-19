@@ -4,3 +4,8 @@ retail_project/
 
 # Fichiers temporaires Office
 ~$*
+
+# Fichiers generes par Python et Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/

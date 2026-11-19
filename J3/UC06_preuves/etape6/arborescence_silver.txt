@@ -1,0 +1,41 @@
+0 silver/date_dim
+3651807 silver/date_dim/part-00000-085a09e0-90c6-412f-afae-6a3575b285c1-c000.snappy.parquet
+0 silver/item
+3589924 silver/item/part-00000-6870c994-8705-4f9d-bc77-aab3fd2227b0-c000.snappy.parquet
+0 silver/store
+12141 silver/store/part-00000-27d0bd8e-f1f2-4a7f-89f0-002c856aa4d6-c000.snappy.parquet
+0 silver/store_sales
+0 silver/store_sales/lot=initial
+85187650 silver/store_sales/lot=initial/part-00000-dd59413d-564d-44b9-a667-013590b2eef0.c000.snappy.parquet
+0 silver/store_sales/lot=refresh
+862364 silver/store_sales/lot=refresh/part-00001-dd59413d-564d-44b9-a667-013590b2eef0.c000.snappy.parquet
+0 silver/ventes_detaillees
+0 silver/ventes_detaillees/annee=2001
+18629011 silver/ventes_detaillees/annee=2001/part-00002-63c630ae-b050-494d-9046-2b90e9f12aba.c000.snappy.parquet
+0 silver/ventes_detaillees/annee=2002
+18654428 silver/ventes_detaillees/annee=2002/part-00004-63c630ae-b050-494d-9046-2b90e9f12aba.c000.snappy.parquet
+0 silver/ventes_detaillees/annee=2003
+18592517 silver/ventes_detaillees/annee=2003/part-00000-63c630ae-b050-494d-9046-2b90e9f12aba.c000.snappy.parquet
+0 silver/ventes_detaillees/annee=2004
+18792580 silver/ventes_detaillees/annee=2004/part-00001-63c630ae-b050-494d-9046-2b90e9f12aba.c000.snappy.parquet
+0 silver/ventes_detaillees/annee=2005
+18456287 silver/ventes_detaillees/annee=2005/part-00003-63c630ae-b050-494d-9046-2b90e9f12aba.c000.snappy.parquet
+0 quality/rejets/date_dim
+3198 quality/rejets/date_dim/part-00000-5e6a5b62-b508-451d-a17d-413f8d0d9977-c000.snappy.parquet
+0 quality/rejets/item
+2704 quality/rejets/item/part-00000-f1e187d8-696a-4468-a3a2-c6e42158b647-c000.snappy.parquet
+0 quality/rejets/store
+3445 quality/rejets/store/part-00000-42293a24-d34b-4a41-b226-962ce89a9a8d-c000.snappy.parquet
+0 quality/rejets/store_sales
+3153 quality/rejets/store_sales/part-00000-3c5faf08-49e5-4511-8681-866a3e5ef2c9-c000.snappy.parquet
+0 logs/traitements/silver_20261118_150805.json
+2048 logs/traitements/silver_20261118_150805.json/part-00000
+0 logs/traitements/silver_20261118_151104.json
+2039 logs/traitements/silver_20261118_151104.json/part-00000
+0 logs/traitements/silver_20261118_151538.json
+2039 logs/traitements/silver_20261118_151538.json/part-00000
+0 logs/traitements/silver_20261118_153139.json
+2039 logs/traitements/silver_20261118_153139.json/part-00000
+
+177.8 M  177.8 M  /retail-lake/silver
+986.1 M  986.1 M  /retail-lake/bronze
